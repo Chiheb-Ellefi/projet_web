@@ -127,12 +127,7 @@ spring:
 server:
   port: ${SERVER_PORT:8888}
   shutdown: graceful
-  ssl:
-    enabled: ${SSL_ENABLED:true}
-    key-store: ${SSL_KEYSTORE:/home/chihebellefi/certs/keystore.p12}
-    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
-    key-store-type: PKCS12
-    key-alias: ${SSL_KEY_ALIAS:tomcat}
+
   tomcat:
     threads:
       max: 200

@@ -189,16 +189,7 @@ server:
     connection-timeout: 30s
     idle-timeout: 60s
   forward-headers-strategy: framework
-  ssl:
-    enabled: ${SSL_ENABLED:true}
-    key-store: ${SSL_KEYSTORE:/home/chihebellefi/certs/keystore.p12}
-    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
-    key-store-type: PKCS12
-    key-alias: ${SSL_KEY_ALIAS:tomcat}
-    # Trust store for connecting to Eureka
-    trust-store: ${SSL_TRUSTSTORE:/home/chihebellefi/certs/keystore.p12}
-    trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:password}
-    trust-store-type: PKCS12
+
 
 # ============================================
 # EUREKA CLIENT CONFIGURATION
@@ -207,7 +198,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: https://user:password@localhost:8761/eureka/
+      defaultZone: http://user:password@localhost:8761/eureka/
     enabled: true
     register-with-eureka: true
     fetch-registry: true
@@ -227,15 +218,7 @@ eureka:
       connect-timeout: 5000
       connect-request-timeout: 8000
       socket-timeout: 10000
-    tls:
-      enabled: true
-      key-store: file:/home/chihebellefi/certs/keystore.p12
-      key-store-type: PKCS12
-      key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
-      key-password: ${SSL_KEY_PASSWORD:password}
-      trust-store: file:/home/chihebellefi/certs/keystore.p12
-      trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:password}
-      trust-store-type: PKCS12
+ 
     eureka-server-connect-timeout-seconds: 5
     eureka-server-read-timeout-seconds: 8
     eureka-server-total-connections: 200
@@ -252,9 +235,9 @@ eureka:
     non-secure-port-enabled: false
     secure-port: 8080
     secure-port-enabled: true
-    status-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/info
-    health-check-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/health
-    home-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/
+    status-page-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/info
+    health-check-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/health
+    home-page-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 60
     metadata-map:

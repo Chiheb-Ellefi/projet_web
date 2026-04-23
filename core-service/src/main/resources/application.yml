@@ -28,11 +28,30 @@ file:
 
 eureka:
   client:
-    serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    preferIpAddress: true
+    service-url:
+      defaultZone: http://user:password@localhost:8761/eureka/
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
 
+
+  instance:
+    hostname: ${HOSTNAME:localhost}
+    prefer-ip-address: false
+    secure-port-enabled: false
+    non-secure-port-enabled: true
+
+    status-page-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/info
+    health-check-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/health
+    home-page-url: http://${eureka.instance.hostname}:${eureka.instance.secure-port}/
+
+    metadata-map:
+      zone: zone1
+      version: 1.0.0
+      profile: dev
+
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 60
 springdoc:
   api-docs:
     path: /api/v3/api-docs
