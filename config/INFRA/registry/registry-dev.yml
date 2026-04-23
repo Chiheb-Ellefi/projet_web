@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: Service Registry
+  security:
+    user:
+      name: ${ACTUATOR_USERNAME:user}
+      password: ${ACTUATOR_PASSWORD:password}
+server:
+  port: 8761
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 10000
+  shutdown: graceful
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEYSTORE:/home/chihebellefi/certs/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:tomcat}
+
+eureka:
+  server:
+    wait-time-in-ms-when-sync-empty: 300000
+    eviction-interval-timer-in-ms: 60000
+    enable-self-preservation: true
+    renewal-percent-threshold: 0.85
+    response-cache-update-interval-ms: 30000
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    #service-url:
+      #defaultZone: https://${eureka.instance.hostname}:${server.port}/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env
+  endpoint:
+    health:
+      show-details: always
+

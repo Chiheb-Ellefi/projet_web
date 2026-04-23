@@ -1,0 +1,160 @@
+spring:
+  security:
+    user:
+      name: ${ACTUATOR_USERNAME:admin}
+      password: ${ACTUATOR_PASSWORD:password}
+  profiles:
+    active: git
+  cloud:
+    config:
+      server:
+        vault:
+          host: ${VAULT_HOST:127.0.0.1}
+          port: ${VAULT_PORT:8200}
+          scheme: ${VAULT_SCHEME:http}
+          backend: secret
+          order: 1
+          authentication: ${VAULT_AUTH_METHOD:token}
+          token: ${VAULT_TOKEN:token}
+          kv-version: 2
+          default-key: application
+        git:
+          uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+          passphrase: ${GIT_PASSPHRASE:despacito123}
+          skip-ssl-validation: false
+          timeout: 10
+          strict-host-key-checking: true
+          ignore-local-ssh-settings: false
+          force-pull: true
+          delete-untracked-branches: false
+          refresh-rate: 60
+          try-master-branch: false
+          basedir: ${CONFIG_BASEDIR:/tmp/config-repo}
+          order: 2
+          repos:
+            infrastructure:
+              uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+              search-paths:
+                - INFRA/{application}
+              clone-on-start: true
+              pattern:
+                - "gateway*"
+                - "registry*"
+            business:
+              uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+              search-paths:
+                - BL/{application}
+              pattern:
+                - "analytics*"
+                - "assignment*"
+                - "authentication*"
+                - "client*"
+                - "delivery*"
+                - "driver*"
+                - "notification*"
+                - "routing*"
+                - "tracking*"
+                - "vehicle*"
+              clone-on-start: true
+        health:
+          repositories:
+
+            gateway-check:
+              name: gateway
+              profiles: [ dev, prod ]
+              label: main
+            registry-check:
+              name: registry
+              profiles: [ dev, prod ]
+              label: main
+
+
+            analytics-check:
+              name: analytics
+              profiles: [ dev, prod ]
+              label: main
+            assignment-check:
+              name: assignment
+              profiles: [ dev, prod ]
+              label: main
+            authentication-check:
+              name: authentication
+              profiles: [ dev, prod ]
+              label: main
+            client-check:
+              name: client
+              profiles: [ dev, prod ]
+              label: main
+            delivery-check:
+              name: delivery
+              profiles: [ dev, prod ]
+              label: main
+            driver-check:
+              name: driver
+              profiles: [ dev, prod ]
+              label: main
+            notification-check:
+              name: notification
+              profiles: [ dev, prod ]
+              label: main
+            routing-check:
+              name: routing
+              profiles: [ dev, prod ]
+              label: main
+            tracking-check:
+              name: tracking
+              profiles: [ dev, prod ]
+              label: main
+            vehicle-check:
+              name: vehicle
+              profiles: [ dev, prod ]
+              label: main
+
+        bootstrap: true
+        prefix: /config
+        encrypt:
+          enabled: true
+
+      allow-override: true
+      override-none: true
+      fail-fast: true
+      retry:
+        initial-interval: 1000
+        max-interval: 2000
+        max-attempts: 6
+        multiplier: 1.1
+
+server:
+  port: ${SERVER_PORT:8888}
+  shutdown: graceful
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEYSTORE:/home/chihebellefi/certs/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:tomcat}
+  tomcat:
+    threads:
+      max: 200
+      min-spare: 10
+    connection-timeout: 20000
+    accept-count: 100           # Queue size when all threads busy
+    max-connections: 10000
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, refresh
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+
+

@@ -1,0 +1,270 @@
+spring:
+  application:
+    name: Gateway
+  cloud:
+    discovery:
+      enabled: true
+    loadbalancer:
+      eureka:
+        approximate-zone-from-hostname: true
+      zone:  ${eureka.instance.metadata-map.zone}
+
+    gateway:
+      server:
+        webflux:
+          enabled: true
+          x-forwarded:
+            enabled: true
+          forwarded:
+            enabled: true
+          discovery:
+            locator:
+              enabled: true
+          httpclient:
+            connect-timeout: 5000
+            response-timeout: 30s
+            wiretap: false
+          httpserver:
+            wiretap: false
+          metrics:
+            enabled: true
+            tags:
+              path:
+                enabled: true
+          loadbalancer:
+            use404: false
+    circuitbreaker:
+      resilience4j:
+        enabled: true
+        disable-time-limiter: false
+        enable-semaphore-default-bulkhead: true
+      bulkhead:
+        resilience4j:
+          enabled: true
+
+
+# ============================================
+# Redis for Rate Limiter
+# ============================================
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      database: 0
+      lettuce:
+        pool:
+          enabled: true
+          max-active: 16
+          max-idle: 8
+          min-idle: 4
+          max-wait: 3000ms
+
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: gateway, health, info, circuitbreakers, circuitbreakerevents
+      base-path: /actuator
+
+  endpoint:
+    gateway:
+      access: read_only
+
+
+
+# ============================================================================
+# RESILIENCE4J CIRCUIT BREAKER CONFIGURATION
+# ============================================================================
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        register-health-indicator: true
+        sliding-window-size: 100
+        minimum-number-of-calls: 10
+        permitted-number-of-calls-in-half-open-state: 5
+        wait-duration-in-open-state:
+          seconds: 60
+        failure-rate-threshold: 50
+        event-consumer-buffer-size: 10
+        sliding-window-type: count_based
+        slow-call-duration-threshold:
+          seconds: 60
+        slow-call-rate-threshold: 100
+        automatic-transition-from-open-to-half-open-enabled: true
+      critical:
+        register-health-indicator: true
+        sliding-window-size: 50
+        minimum-number-of-calls: 5
+        permitted-number-of-calls-in-half-open-state: 3
+        wait-duration-in-open-state:
+          seconds: 30
+        failure-rate-threshold: 30
+        event-consumer-buffer-size: 20
+        slow-call-duration-threshold:
+          seconds: 60
+        slow-call-rate-threshold: 50
+        sliding-window-type: count_based
+        automatic-transition-from-open-to-half-open-enabled: true
+      lenient:
+        register-health-indicator: true
+        sliding-window-size: 200
+        minimum-number-of-calls: 50
+        permitted-number-of-calls-in-half-open-state: 10
+        wait-duration-in-open-state:
+          seconds: 120
+        failure-rate-threshold: 70
+        event-consumer-buffer-size: 10
+        slow-call-duration-threshold:
+          seconds: 60
+        sliding-window-type: count_based
+        automatic-transition-from-open-to-half-open-enabled: true
+
+    #instances:
+      #service:
+        #base-config: default
+        #sliding-window-size: 80
+
+
+  # ============================================================================
+  # RESILIENCE4J TIME LIMITER CONFIGURATION
+  # ============================================================================
+  # TimeLimiter: Sets max time to wait for a response before timeout
+  timelimiter:
+    configs:
+      default:
+        timeout-duration:
+          seconds: 5
+        cancel-running-future: true
+      fast:
+        timeout-duration:
+          seconds: 2
+        cancel-running-future: true
+      batch:
+        timeout-duration:
+          seconds: 30
+        cancel-running-future: false
+    instances:
+      slow-external-api:
+        timeout-duration:
+          seconds:  60s
+        cancel-running-future: false
+
+
+  # ============================================================================
+  # RESILIENCE4J BULKHEAD CONFIGURATION (Semaphore for Reactive)
+  # ============================================================================
+  # Bulkhead: Limits concurrent calls to prevent overwhelming service/resources
+  bulkhead:
+    configs:
+      default:
+        max-concurrent-calls: 25
+        max-wait-duration:
+          seconds: 0
+      conservative:
+        max-concurrent-calls: 10
+        max-wait-duration:
+          seconds: 0.1
+      generous:
+        max-concurrent-calls: 100
+        max-wait-duration:
+          seconds: 0
+
+    instances:
+      slow-external-api:
+        baseConfig: generous
+        maxConcurrentCalls: 20
+
+
+server:
+  shutdown: graceful
+  port: 8080
+  netty:
+    connection-timeout: 30s
+    idle-timeout: 60s
+  forward-headers-strategy: framework
+  ssl:
+    enabled: ${SSL_ENABLED:true}
+    key-store: ${SSL_KEYSTORE:/home/chihebellefi/certs/keystore.p12}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
+    key-store-type: PKCS12
+    key-alias: ${SSL_KEY_ALIAS:tomcat}
+    # Trust store for connecting to Eureka
+    trust-store: ${SSL_TRUSTSTORE:/home/chihebellefi/certs/keystore.p12}
+    trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:password}
+    trust-store-type: PKCS12
+
+# ============================================
+# EUREKA CLIENT CONFIGURATION
+# ============================================
+
+eureka:
+  client:
+    service-url:
+      defaultZone: https://user:password@localhost:8761/eureka/
+    enabled: true
+    register-with-eureka: true
+    fetch-registry: true
+    registry-fetch-interval-seconds: 10
+    disable-delta: false
+    healthcheck:
+      enabled: true
+    refresh:
+      enable: true
+    region: us-east-1
+    availability-zones:
+      us-east-1: zone1, zone2
+    prefer-same-zone-eureka: true
+    webclient:
+      enabled: false
+    timeout:
+      connect-timeout: 5000
+      connect-request-timeout: 8000
+      socket-timeout: 10000
+    tls:
+      enabled: true
+      key-store: file:/home/chihebellefi/certs/keystore.p12
+      key-store-type: PKCS12
+      key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
+      key-password: ${SSL_KEY_PASSWORD:password}
+      trust-store: file:/home/chihebellefi/certs/keystore.p12
+      trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:password}
+      trust-store-type: PKCS12
+    eureka-server-connect-timeout-seconds: 5
+    eureka-server-read-timeout-seconds: 8
+    eureka-server-total-connections: 200
+    eureka-server-total-connections-per-host: 50
+    eureka-connection-idle-timeout-seconds: 30
+    filter-only-up-instances: true
+    log-delta-diff: true
+    g-zip-content: true
+  instance:
+    hostname: ${HOSTNAME:localhost}
+    ip-address: 127.0.0.1
+    prefer-ip-address: false
+    non-secure-port: 8080
+    non-secure-port-enabled: false
+    secure-port: 8080
+    secure-port-enabled: true
+    status-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/info
+    health-check-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/health
+    home-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 60
+    metadata-map:
+      zone: zone1
+      version: 1.0.0
+      profile: dev
+    initial-status: UP
+
+
+
+
+
+

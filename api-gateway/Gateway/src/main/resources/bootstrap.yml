@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: Gateway
+  config:
+    import: 'optional:configserver:https://${CONFIG_SERVER_USERNAME:admin}:${CONFIG_SERVER_PASSWORD:password}@localhost:8888/config'
+  profiles:
+    active: ${PROFILE:dev}
+  cloud:
+    discovery:
+      enabled: false
+    config:
+      profile: ${PROFILE:dev}
+      label: main
+      fail-fast: true
+      retry:
+        multiplier: 1.1
+        initial-interval: 1000
+        max-attempts: 2
+        max-interval: 2000
+        use-random-policy: true
+      send-all-labels: true
+      multiple-uri-strategy: always
+      request-connect-timeout: 5000
+      request-read-timeout: 50000
+      charset: UTF-8

@@ -1,0 +1,4 @@
+spring:
+  application:
+    name: Delivery Management Service
+
