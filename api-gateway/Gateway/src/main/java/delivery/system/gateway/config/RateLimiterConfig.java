@@ -69,22 +69,5 @@ public class RateLimiterConfig {
     public RedisRateLimiter throttledRateLimiter() {
         return new RedisRateLimiter(1,60,60);
     }
-    @Bean
-    public RouteLocator customRouteLocator(RouteLocatorBuilder builder) {
-        return builder.routes()
-                .route("api_route_by_ip", r -> r
-                        .path("/**")
-                        .filters(f -> f
-                                .requestRateLimiter(config -> config
-                                        .setRateLimiter(generousRateLimiter())
-                                        .setKeyResolver(ipKeyResolver())
-                                        .setDenyEmptyKey(true)
-                                        .setEmptyKeyStatus(HttpStatus.FORBIDDEN.name())
-                                )
-                        )
-                        .uri("https://localhost:8080")
-                )
-                .build();
-    }
 
 }

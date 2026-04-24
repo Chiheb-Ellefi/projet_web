@@ -54,7 +54,7 @@ public class DomaineController {
     @PutMapping("/admin/domaines/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Domaine> update(@PathVariable("id") Long id,
-                                           @Valid @RequestBody DomaineDTO dto) {
+                                          @Valid @RequestBody DomaineDTO dto) {
         return ResponseEntity.ok(domaineService.updateDomaine(id, dto));
     }
 

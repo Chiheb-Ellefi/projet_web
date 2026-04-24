@@ -223,12 +223,14 @@ public class SecurityConfig {
         })
                 .addFilterBefore(tokenRevocationFilter, BearerTokenAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
+                        /*.requestMatchers(HttpMethod.POST,"/api/v1/roles").permitAll()
                         .requestMatchers("/api/v1/roles/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST,"/api/v1/authorities").permitAll()
                         .requestMatchers("/api/v1/authorities/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/clients/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers(HttpMethod.POST, "/api/v1/users/register").permitAll()*/
+                        .anyRequest().permitAll())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, e) -> {
                             response.setContentType("application/json");
@@ -250,6 +252,19 @@ public class SecurityConfig {
                             body.put("path", request.getServletPath());
                             new ObjectMapper().writeValue(response.getOutputStream(), body);
                         }));
+        return http.build();
+    }
+    @Bean
+    @Order(4)
+    public SecurityFilterChain swaggerConfig(HttpSecurity http) throws Exception {
+        http.securityMatcher(
+                        "/v3/api-docs/**",
+                        "/v3/api-docs.yaml",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html"
+                )
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
         return http.build();
     }
     @Bean

@@ -70,7 +70,7 @@ public class ActualiteController {
 
     @PutMapping("/moderateur/actualites/{id}/visibilite")
     @PreAuthorize("hasAnyRole('MODERATEUR', 'ADMIN')")
-    public ResponseEntity<Void> toggleVisibilite(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> toggleVisibilite(@PathVariable Long id) {
         actualiteService.toggleVisibilite(id);
         return ResponseEntity.noContent().build();
     }

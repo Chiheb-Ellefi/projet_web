@@ -34,59 +34,135 @@ spring:
           loadbalancer:
             use404: false
           routes:
-              - id: research-public
-                uri: lb://RESEARCH-SERVICE
-                predicates:
-                  - Path=/api/public/**
-                filters:
-                  - name: CircuitBreaker
-                    args:
-                      name: researchCB
-                      fallbackUri: forward:/fallback/research
-                  - name: RequestRateLimiter
-                    args:
-                      redis-rate-limiter.replenishRate: 20
-                      redis-rate-limiter.burstCapacity: 40
+            - id: research-public
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/api/public/**
+              filters:
+                - TokenRelay=                          # ← ADD THIS EVERYWHERE
+                - name: CircuitBreaker
+                  args:
+                    name: researchCB
+                    fallbackUri: forward:/fallback/research
+                - name: RequestRateLimiter
+                  args:
+                    redis-rate-limiter.replenishRate: 20
+                    redis-rate-limiter.burstCapacity: 40
 
-              - id: research-user
-                uri: lb://RESEARCH-SERVICE
-                predicates:
-                  - Path=/api/user/**
-                filters:
-                  - name: CircuitBreaker
-                    args:
-                      name: researchCB
-                      fallbackUri: forward:/fallback/research
+            - id: research-user
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/api/user/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: researchCB
+                    fallbackUri: forward:/fallback/research
 
-              - id: research-moderateur
-                uri: lb://RESEARCH-SERVICE
-                predicates:
-                  - Path=/api/moderateur/**
-                filters:
-                  - name: CircuitBreaker
-                    args:
-                      name: researchCB
-                      fallbackUri: forward:/fallback/research
+            - id: research-moderateur
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/api/moderateur/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: researchCB
+                    fallbackUri: forward:/fallback/research
 
-              - id: research-admin
-                uri: lb://RESEARCH-SERVICE
-                predicates:
-                  - Path=/api/admin/**
-                filters:
-                  - name: CircuitBreaker
-                    args:
-                      name: researchCB
-                      fallbackUri: forward:/fallback/research
+            - id: research-admin
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/api/admin/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: researchCB
+                    fallbackUri: forward:/fallback/research
 
-              - id: research-files
-                uri: lb://RESEARCH-SERVICE
-                predicates:
-                  - Path=/api/files/**
-                filters:
-                  - name: CircuitBreaker
-                    args:
-                      name: researchCB
-                      fallbackUri: forward:/fallback/research
+            - id: research-files
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/api/files/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: researchCB
+                    fallbackUri: forward:/fallback/research
+            # ─── AUTH SERVICE ROUTES ────────────────────────────────────────────────
+
+            # Public: user self-registration (no token needed)
+            - id: auth-register
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/api/v1/users/register
+              filters:
+                - name: CircuitBreaker
+                  args:
+                    name: authCB
+                    fallbackUri: forward:/fallback/auth
+
+            # Admin-only: user creation, role/authority/client management
+            - id: auth-admin-users
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/api/v1/users/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: authCB
+                    fallbackUri: forward:/fallback/auth
+
+            - id: auth-admin-roles
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/api/v1/roles/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: authCB
+                    fallbackUri: forward:/fallback/auth
+
+            - id: auth-admin-authorities
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/api/v1/authorities/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: authCB
+                    fallbackUri: forward:/fallback/auth
+
+            - id: auth-admin-clients
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/api/v1/clients/**
+              filters:
+                - TokenRelay=
+                - name: CircuitBreaker
+                  args:
+                    name: authCB
+                    fallbackUri: forward:/fallback/auth
+
+            - id: core-service-docs
+              uri: lb://CORE-SERVICE
+              predicates:
+                - Path=/core-service/v3/api-docs
+              filters:
+                - RewritePath=/core-service/v3/api-docs, /v3/api-docs
+
+            - id: auth-service-docs
+              uri: lb://AUTHORIZATIONSERVICE
+              predicates:
+                - Path=/auth-service/v3/api-docs
+              filters:
+                - RewritePath=/auth-service/v3/api-docs, /v3/api-docs
 
     circuitbreaker:
       resilience4j:
@@ -120,10 +196,26 @@ spring:
 
   security:
     oauth2:
+      client:
+        registration:
+          gateway:
+            provider: auth-server
+            client-id: gatewayservice-QGRiX424PE_LPZlC-CcURA
+            client-secret: AimpZwDKNi8AqDBHwbaKUc2M5aYIeFSDwzB72iAnEQI
+            authorization-grant-type: authorization_code
+            redirect-uri: "http://localhost:8080/login/oauth2/code/gateway"
+            scope: openid, profile
+        provider:
+          auth-server:
+            authorization-uri: http://localhost:9000/oauth2/authorize
+            token-uri: http://localhost:9000/oauth2/token
+            jwk-set-uri: http://localhost:9000/oauth2/jwks
+            user-info-uri: http://localhost:9000/userinfo
+            user-name-attribute: sub
       resourceserver:
         jwt:
-          issuer-uri: ${ISSUER_URI:http://AuthorizationService}
-          jwk-set-uri: ${JWKS_URI:http://AuthorizationService/oauth2/jwks}
+          jwk-set-uri: http://localhost:9000/oauth2/jwks
+
 
 
 logging:
@@ -292,7 +384,7 @@ eureka:
     log-delta-diff: true
     g-zip-content: true
   instance:
-    hostname: ${HOSTNAME:localhost}
+    hostname: localhost
     ip-address: 127.0.0.1
     prefer-ip-address: false
     non-secure-port: 8080
@@ -318,5 +410,15 @@ eureka:
 keySetURI: http://AuthorizationService/oauth2/jwks
 introspectionUri: http://AuthorizationService/oauth2/introspect
 
-
+# gateway application.yml
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: Core Service
+        url: /core-service/v3/api-docs
+      - name: Authorization Service
+        url: /auth-service/v3/api-docs
+  api-docs:
+    enabled: true
 

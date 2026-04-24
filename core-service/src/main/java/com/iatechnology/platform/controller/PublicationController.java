@@ -13,13 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-/**
- * Controller REST pour la gestion des publications scientifiques.
- *
- * Accès public   : GET  /api/public/publications/**
- * Accès USER+    : GET  /api/user/publications/**
- * Accès ADMIN    : POST/PUT/DELETE  /api/admin/publications/**
- */
+
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -79,7 +73,7 @@ public class PublicationController {
     @PutMapping("/admin/publications/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Publication> update(@PathVariable("id") Long id,
-                                               @Valid @RequestBody PublicationDTO dto) {
+                                              @Valid @RequestBody PublicationDTO dto) {
         return ResponseEntity.ok(publicationService.updatePublication(id, dto));
     }
 

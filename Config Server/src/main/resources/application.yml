@@ -19,7 +19,7 @@ spring:
           kv-version: 2
           default-key: application
         git:
-          uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+          uri: git@github.com:Chiheb-Ellefi/projet_web.git
           passphrase: ${GIT_PASSPHRASE:despacito123}
           skip-ssl-validation: false
           timeout: 10
@@ -33,17 +33,17 @@ spring:
           order: 2
           repos:
             infrastructure:
-              uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+              uri: git@github.com:Chiheb-Ellefi/projet_web.git
               search-paths:
-                - INFRA/{application}
+                - config/INFRA/{application}
               clone-on-start: true
               pattern:
                 - "gateway*"
                 - "registry*"
             business:
-              uri: git@github.com:Chiheb-Ellefi/delivery-system-config.git
+              uri: git@github.com:Chiheb-Ellefi/projet_web.git
               search-paths:
-                - BL/{application}
+                - config/BL/{application}
               pattern:
                 - "analytics*"
                 - "assignment*"

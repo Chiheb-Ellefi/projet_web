@@ -37,7 +37,7 @@ public class FileController {
         Map<String, String> response = new HashMap<>();
         response.put("fileName", fileName);
         response.put("fileDownloadUri", fileDownloadUri);
-        
+
         return ResponseEntity.ok(response);
     }
 

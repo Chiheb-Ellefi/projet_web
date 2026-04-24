@@ -17,16 +17,11 @@ spring:
       host: localhost
 server:
   port: 9000
-  ssl:
-    enabled: true
-    key-store: file:/home/chihebellefi/certs/keystore.p12
-    key-store-type: PKCS12
-    key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
-    key-password: ${SSL_KEY_PASSWORD:password}
+
 
 
 token:
-  format: reference
+  format: self-contained
   access-token-ttl: 300
   refresh-token-ttl: 2592000
   authorization-code-ttl: 300
@@ -51,7 +46,7 @@ client:
 eureka:
   client:
     service-url:
-      defaultZone: https://user:password@localhost:8761/eureka/
+      defaultZone: http://user:password@localhost:8761/eureka/
 
     enabled: true
     register-with-eureka: true
@@ -73,14 +68,8 @@ eureka:
       connect-request-timeout: 8000
       socket-timeout: 10000
     tls:
-      enabled: true
-      key-store: file:/home/chihebellefi/certs/keystore.p12
-      key-store-type: PKCS12
-      key-store-password: ${SSL_KEYSTORE_PASSWORD:password}
-      key-password: ${SSL_KEY_PASSWORD:password}
-      trust-store: file:/home/chihebellefi/certs/keystore.p12
-      trust-store-password: ${SSL_TRUSTSTORE_PASSWORD:password}
-      trust-store-type: PKCS12
+      enabled: false
+
     eureka-server-connect-timeout-seconds: 5
     eureka-server-read-timeout-seconds: 8
     eureka-server-total-connections: 200
@@ -89,17 +78,16 @@ eureka:
     filter-only-up-instances: true
     log-delta-diff: true
     g-zip-content: true
+
   instance:
-    hostname: ${HOSTNAME:localhost}
-    ip-address: 127.0.0.1
+    hostname: localhost
     prefer-ip-address: false
     non-secure-port: ${server.port}
-    non-secure-port-enabled: false
-    secure-port: ${server.port}
-    secure-port-enabled: true
-    status-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/info
-    health-check-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/actuator/health
-    home-page-url: https://${eureka.instance.hostname}:${eureka.instance.secure-port}/
+    non-secure-port-enabled: true   # ← enable HTTP
+    secure-port-enabled: false      # ← disable HTTPS
+    status-page-url: http://${eureka.instance.hostname}:${server.port}/actuator/info
+    health-check-url: http://${eureka.instance.hostname}:${server.port}/actuator/health
+    home-page-url: http://${eureka.instance.hostname}:${server.port}/
     lease-renewal-interval-in-seconds: 10
     lease-expiration-duration-in-seconds: 60
     metadata-map:
@@ -107,3 +95,9 @@ eureka:
       version: 1.0.0
       profile: dev
     initial-status: UP
+
+
+# auth-service application.yml
+springdoc:
+  api-docs:
+    path: /v3/api-docs

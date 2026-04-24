@@ -64,7 +64,7 @@ public class ChercheurController {
     @PutMapping("/admin/chercheurs/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Chercheur> update(@PathVariable("id") Long id,
-                                             @Valid @RequestBody ChercheurDTO dto) {
+                                            @Valid @RequestBody ChercheurDTO dto) {
         return ResponseEntity.ok(chercheurService.updateChercheur(id, dto));
     }
 
